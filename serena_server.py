@@ -143,7 +143,32 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
 
+from functools import lru_cache
+from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.gzip import GZipMiddleware
+
+# Add GZip compression for large OpenAPI responses
+app.add_middleware(GZipMiddleware, minimum_size=500)
+
+# Cached OpenAPI schema (fixes freeze on first load)
+@lru_cache()
+def custom_openapi():
+    return get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+
+app.openapi = custom_openapi
+
+# ✅ Health check route (ready for Fly deploy + MCP health polls)
+@app.get("/health", tags=["health"])
+async def health_check():
+    return {"status": "ok"}
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "8000"))
     logger.info(f"Starting Serena MCP Server on port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run("serena_server:app", host="0.0.0.0", port=port, reload=False)
+
