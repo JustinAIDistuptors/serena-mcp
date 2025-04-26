@@ -4,6 +4,9 @@ Serena MCP Server
 This file implements a simple MCP server for serena operations.
 """
 
+import base64, httpx
+from routers.github_utils import upsert_file, create_pr
+from routers.fly_utils import deploy_app
 import os
 import json
 import logging
