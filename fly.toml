@@ -1,4 +1,4 @@
-app = "taskmaster-mcp"
+app = "serena-mcp"
 primary_region = "mia"
 
 [env]
